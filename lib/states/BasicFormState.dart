@@ -79,6 +79,11 @@ class BasicFormState extends State<BasicForm> {
               child: RaisedButton(
                 onPressed: () {
                   if (_formKey.currentState.validate()) {
+                    final firstName = firstNameController.text.trim();
+                    final lastName = lastNameController.text.trim();
+                    final phone = phoneController.text.trim();
+                    final email = emailController.text.trim();
+
                     http
                         .post(
                       'https://vacancy.dns-shop.ru/api/candidate/token',
@@ -86,27 +91,20 @@ class BasicFormState extends State<BasicForm> {
                         'Content-Type': 'application/json; charset=UTF-8',
                       },
                       body: jsonEncode(<String, dynamic>{
-                        'firstName': firstNameController.text,
-                        'lastName': lastNameController.text,
-                        'phone': phoneController.text,
-                        'email': emailController.text,
+                        'firstName': firstName,
+                        'lastName': lastName,
+                        'phone': phone,
+                        'email': email
                       }),
                     )
                         .then((response) {
-                      //print("Response status: ${response.statusCode}");
-                      //print("Response body: ${response.body}");
-                      var parsedJson = json.decode(response.body);
-                      //print("Parsed json: ${parsedJson}");
-                      //print("Parsed json: ${parsedJson['data']}");
-                      var code = parsedJson['code'];
-                      var message = parsedJson['message'];
-                      var data = parsedJson['data'];
-                      print('$code, $message, $data');
+                      print(json.decode(response.body)['data']);
 
-
-                      Navigator.push(
+                      Navigator.pushNamed(
                         context,
-                        MaterialPageRoute(builder: (context) => SecondRoute()),
+                        SecondRoute.routeName,
+                        arguments: ScreenArguments(firstName, lastName, phone,
+                            email, json.decode(response.body)['data']),
                       );
                     }).catchError((error) {
                       print("Error: $error");
@@ -125,4 +123,15 @@ class BasicFormState extends State<BasicForm> {
       ),
     );
   }
+}
+
+class ScreenArguments {
+  final firstName;
+  final lastName;
+  final phone;
+  final email;
+  final data;
+
+  ScreenArguments(
+      this.firstName, this.lastName, this.phone, this.email, this.data);
 }

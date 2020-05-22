@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:dnstask/states/BasicFormState.dart';
 
 class SecondRoute extends StatelessWidget {
+  static const routeName = '/secondRoute';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,6 +32,8 @@ class SecondRouteFormState extends State<SecondRouteForm> {
 
   @override
   Widget build(BuildContext context) {
+    final ScreenArguments args = ModalRoute.of(context).settings.arguments;
+
     return Form(
       key: _formKey,
       child: Column(
@@ -41,6 +46,14 @@ class SecondRouteFormState extends State<SecondRouteForm> {
                 if (value.isEmpty) {
                   return 'Пожалуйста введите ссылку на профиль GitHub';
                 }
+
+                Pattern pattern = '(http(s)?)(:(\/\/)?)(github\.com\/.+)';
+                RegExp regex = new RegExp(pattern);
+
+                if (!regex.hasMatch(value)) {
+                  return 'Введите корректную ссылку';
+                }
+
                 return null;
               },
               decoration: InputDecoration(hintText: 'ссылка на github'),
@@ -67,12 +80,15 @@ class SecondRouteFormState extends State<SecondRouteForm> {
                   'https://vacancy.dns-shop.ru/api/candidate/test/summary',
                   headers: <String, String>{
                     'Content-Type': 'application/json; charset=UTF-8',
+                    'authorization': 'Bearer ' + args.data,
                   },
                   body: jsonEncode(<String, dynamic>{
-                    /*'firstName': firstNameController.text,
-                    'lastName': lastNameController.text,
-                    'phone': phoneController.text,
-                    'email': emailController.text,*/
+                    'firstName': args.firstName,
+                    'lastName': args.lastName,
+                    'phone': args.phone,
+                    'email': args.email,
+                    'githubProfileUrl': gitLink.text.trim(),
+                    'summary': summaryLink.text.trim(),
                   }),
                 )
                     .then((response) {
@@ -81,8 +97,6 @@ class SecondRouteFormState extends State<SecondRouteForm> {
                   var message = parsedJson['message'];
                   var data = parsedJson['data'];
                   print('$code, $message, $data');
-
-                  Navigator.pop(context);
                 }).catchError((error) {
                   print("Error: $error");
                 });
